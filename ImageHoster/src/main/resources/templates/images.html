@@ -16,9 +16,11 @@
         <div>
             <img th:src="'data:image/jpeg;base64,'+${i.imageFile}"/>
         </div>
-
+        <!-- changing the pathvariable to not only carry the value of image title but also image id-->
+        <!-- image id is the unique identifier used to retrieve the image in ImageRepository.java class-->
         <!--Change <a th:href="'/images/' + ${i.title}"> to <a th:href="'/images/' +${i.id} +'/' +${i.title}">-->
-        <a th:href="'/images/' + ${i.title}">
+        <a th:href="'/images/' +${i.id} +'/' +${i.title}">
+            <!--a th:href="'/images/' + ${i.title}"-->
             <h3 th:text="${i.title}">Title of image</h3>
         </a>
         <i>Posted On: </i> <span th:text="${i.date}"></span>
