@@ -160,7 +160,11 @@ public class ImageController {
         updatedImage.setDate(new Date());
 
         imageService.updateImage(updatedImage);
-        return "redirect:/images/" + updatedImage.getTitle();
+        //edited the below statement to be redirected to appropriate image page.
+        //added - updatedImage.getId()+"/"+ 
+        return "redirect:/images/"+updatedImage.getId()+"/"+ updatedImage.getTitle();
+
+
     }
 
 
