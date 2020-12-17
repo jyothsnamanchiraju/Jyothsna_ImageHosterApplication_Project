@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.*;
@@ -104,14 +106,27 @@ public class ImageController {
 
     //The method first needs to convert the list of all the tags to a string containing all the tags separated by a comma and then add this string in a Model type object
     //This string is then displayed by 'edit.html' file as previous tags of an image
-    @RequestMapping(value = "/editImage")
-    public String editImage(@RequestParam("imageId") Integer imageId, Model model) {
-        Image image = imageService.getImage(imageId);
 
-        String tags = convertTagsToString(image.getTags());
-        model.addAttribute("image", image);
-        model.addAttribute("tags", tags);
-        return "images/edit";
+    /* Following changes are made to the below method -
+    ** 1. Retrieve Logged in user information from HTTPSession
+    ** 2. Display error messge if the user is trying to edit the image that was not posted by him.
+    * */
+    @RequestMapping(value = "/editImage")
+    //public String editImage(@RequestParam("imageId") Integer imageId, Model model) {
+    public String editImage(@RequestParam("imageId") Integer imageId, Model model, HttpSession session, RedirectAttributes redirectAtt) {
+        if(checkUser(imageId, session)) {
+            Image image = imageService.getImage(imageId);
+            String tags = convertTagsToString(image.getTags());
+            model.addAttribute("image", image);
+            model.addAttribute("tags", tags);
+            return "images/edit";
+        }
+        else {
+            String imageTitle = imageService.getImage(imageId).getTitle();
+            String error = "Only the owner of the image can edit the image";
+            redirectAtt.addAttribute("editError", error).addFlashAttribute("editError", error);
+            return "redirect:/images/" + imageId + '/' + imageTitle;
+        }
     }
 
     //This controller method is called when the request pattern is of type 'images/edit' and also the incoming request is of PUT type
@@ -152,12 +167,53 @@ public class ImageController {
     //This controller method is called when the request pattern is of type 'deleteImage' and also the incoming request is of DELETE type
     //The method calls the deleteImage() method in the business logic passing the id of the image to be deleted
     //Looks for a controller method with request mapping of type '/images'
-    @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
+
+    /* Following changes are made to the below method -
+     ** 1. Retrieve Logged in user information from HTTPSession
+     ** 2. Display error messge if the user is trying to delete the image that was not posted by him.
+     * */
+   /* @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
     public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId) {
         imageService.deleteImage(imageId);
         return "redirect:/images";
+    }*/
+
+    @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
+    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId,Model model, HttpSession session, RedirectAttributes redirectAtt) {
+        if(checkUser(imageId, session)) {
+            imageService.deleteImage(imageId);
+            return "redirect:/images";
+        }
+        else {
+            String imageTitle = imageService.getImage(imageId).getTitle();
+            String error = "Only the owner of the image can delete the image";
+            redirectAtt.addAttribute("deleteError", error).addFlashAttribute("deleteError", error);
+            return "redirect:/images/" + imageId + '/' + imageTitle;
+        }
     }
 
+
+    /*The below method  checkUser() is coded for the following functionality-
+** 1.To check if the logged in user is the owner of the image
+*    that he is trying to edit or delete.
+** 2. If the logged in user is the owner of the image, return true
+*     else return false.
+* */
+    public boolean checkUser(Integer imageId, HttpSession session){
+        //get image details from the imageId
+        Image image = imageService.getImage(imageId);
+        //get the owner details of the image
+        User imageOwner = image.getUser();
+        //get the logged-in user details from the HttpSession
+        User currentUser = (User)session.getAttribute("loggeduser");
+
+        //compare image owner details with curret user details
+        if (imageOwner.getId() == currentUser.getId())
+            return true;
+        else
+            return false;
+
+    }
 
     //This method converts the image to Base64 format
     private String convertUploadedFileToBase64(MultipartFile file) throws IOException {
