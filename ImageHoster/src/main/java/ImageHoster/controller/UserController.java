@@ -11,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
@@ -39,11 +41,73 @@ public class UserController {
 
     //This controller method is called when the request pattern is of type 'users/registration' and also the incoming request is of POST type
     //This method calls the business logic and after the user record is persisted in the database, directs to login page
-    @RequestMapping(value = "users/registration", method = RequestMethod.POST)
+   /* @RequestMapping(value = "users/registration", method = RequestMethod.POST)
     public String registerUser(User user) {
         userService.registerUser(user);
         return "redirect:/users/login";
+    }*/
+   /*Following changes are made to the above method registerUser()-
+   ** 1. The method is invoked when the user clicks the register button on the screen registration.html
+   ** 2. Changes are made to implement password correction when the user enters inappropriate password.
+   ** 3. The method invokes checkUserProfile(user) inorder to receive error message if any
+   ** 4. If there is no error message, the new user is registered.
+   * */
+    @RequestMapping(value = "users/registration", method = RequestMethod.POST)
+    public String registerUser(User user, Model model, HttpSession session, RedirectAttributes redirectAtt) {
+        if(checkPassword(user))  {
+            userService.registerUser(user);
+            return "redirect:/users/login";
+        }
+        else {
+            String error = "Password must contain atleast 1 alphabet, 1 number & 1 special character";
+            redirectAtt.addAttribute("passwordTypeError", error).addFlashAttribute("passwordTypeError", error);
+            return "redirect:/users/registration";
+        }
     }
+
+    /*checkPassword method-
+    ** The checkPassword method is passed the new user details
+    ** This method gets the password entered by the user from model class of User.
+    ** It then checks if the password contatins atleast one character, one numeric and one special character.
+    ** If yes, it returns true.
+    ** else returns false.
+    ** */
+
+    public static boolean checkPassword(User user) {
+        //get password from User model class.
+        String password = user.getPassword();
+
+        if (password.isEmpty())
+            return false;
+
+        boolean hasChar = false;
+        boolean hasNumeric = false;
+        boolean hasSpl = false;
+
+        for (int i = 0; i < password.length(); i++) {
+            //type casting ascii value of the character.
+            int j = password.charAt(i);
+
+            //checks for special character
+            if((j>=32 && j<=47) || (j>=58 && j<=64) || (j>=91 && j<=96) || (j>=123 && j<=126))
+                hasSpl = true;
+            //checks for numeric
+            if(j>=48 && j<=57)
+                hasNumeric = true;
+            //checks for characters (A-Z), (a-z)
+            if((j>=65 && j<=90) || (j>=97 && j<=122))
+                hasChar = true;
+
+            if(hasSpl && hasChar && hasNumeric)
+                break;
+        }
+
+        if(hasSpl && hasChar && hasNumeric)
+            return true;
+        else
+            return false;
+    }
+
 
     //This controller method is called when the request pattern is of type 'users/login'
     @RequestMapping("users/login")
