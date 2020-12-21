@@ -3,8 +3,12 @@ package ImageHoster.controller;
 import ImageHoster.model.Image;
 import ImageHoster.model.Tag;
 import ImageHoster.model.User;
+import ImageHoster.model.Comment;
+
 import ImageHoster.service.ImageService;
 import ImageHoster.service.TagService;
+import ImageHoster.service.CommentService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +32,9 @@ public class ImageController {
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private CommentService commentService;
 
     //This method displays all the images in the user home page after successful login
     @RequestMapping("images")
@@ -56,15 +63,19 @@ public class ImageController {
     //@RequestMapping("/images/{title}")
     //public String showImage(@PathVariable("title") String title, Model model) {
 
-    @RequestMapping("/images/{id}/{title}")
+    @RequestMapping(value="/images/{id}/{title}", method = RequestMethod.GET)
     public String showImage(@PathVariable("id") Integer id, @PathVariable("title") String title, Model model) {
-
-
         //Image image = imageService.getImageByTitle(title);
-
         Image image = imageService.getImageByTitle(id,title);
+
+        //retrieving the associated comments using the image id
+        List<Comment> commentList= commentService.getAllCommentsForImage(id);
+
         model.addAttribute("image", image);
+        //adding tags associated with the image to be displayed on the screen.
         model.addAttribute("tags", image.getTags());
+        //adding comments pertaining to the image to be displayed on the screen.
+        model.addAttribute("comments",commentList);
         return "images/image";
     }
 
@@ -114,6 +125,8 @@ public class ImageController {
     @RequestMapping(value = "/editImage")
     //public String editImage(@RequestParam("imageId") Integer imageId, Model model) {
     public String editImage(@RequestParam("imageId") Integer imageId, Model model, HttpSession session, RedirectAttributes redirectAtt) {
+       //check user information before letting the user modify the image attributes.
+      //if the user is not the owner of the image, send the editError message.
         if(checkUser(imageId, session)) {
             Image image = imageService.getImage(imageId);
             String tags = convertTagsToString(image.getTags());
@@ -184,6 +197,8 @@ public class ImageController {
 
     @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
     public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId,Model model, HttpSession session, RedirectAttributes redirectAtt) {
+        //check user information before letting the user delete the image.
+        //if the user is not the owner of the image, send the deleteError message.
         if(checkUser(imageId, session)) {
             imageService.deleteImage(imageId);
             return "redirect:/images";
@@ -196,8 +211,7 @@ public class ImageController {
         }
     }
 
-
-    /*The below method  checkUser() is coded for the following functionality-
+/*The below method  checkUser() is coded for the following functionality-
 ** 1.To check if the logged in user is the owner of the image
 *    that he is trying to edit or delete.
 ** 2. If the logged in user is the owner of the image, return true

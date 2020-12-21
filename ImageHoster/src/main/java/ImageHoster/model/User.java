@@ -41,6 +41,14 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Image> images = new ArrayList<>();
 
+    /*****************************/
+    /*Below code is added to model class User.java */
+    /*To join Users Table with Comment_tbl Table */
+    //One User can post many Comments. Therefore, we need One To Many mapping.
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+    /*****************************/
+
     public Integer getId() {
         return id;
     }
@@ -79,6 +87,16 @@ public class User {
 
     public void setImages(List<Image> images) {
         this.images = images;
+    }
+
+    /*Getter for List of Comments posted by User*/
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    /*Setter for List of Comments posted by User*/
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 }
 

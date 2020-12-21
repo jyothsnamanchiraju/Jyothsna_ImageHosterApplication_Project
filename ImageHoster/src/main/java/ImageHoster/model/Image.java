@@ -51,6 +51,14 @@ public class Image {
     @ManyToMany(fetch = FetchType.LAZY)
     private List<Tag> tags = new ArrayList<>();
 
+    /*************************/
+    /*Below code is added to model class Image.java */
+    /*To Join Images Table with Comment_tbl Table */
+    /*One Image can have many Comments. Therefore, we need One to Many mapping.*/
+    @OneToMany(mappedBy = "image", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+    /************************/
+
     public Image() {
     }
 
@@ -125,5 +133,15 @@ public class Image {
 
     public void setTags(List<Tag> tags) {
         this.tags = tags;
+    }
+
+    /*Getter for List of Comments uploaded for the image*/
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    /*Setter for List of Comments uploaded for the image*/
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 }

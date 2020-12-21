@@ -54,6 +54,8 @@ public class UserController {
    * */
     @RequestMapping(value = "users/registration", method = RequestMethod.POST)
     public String registerUser(User user, Model model, HttpSession session, RedirectAttributes redirectAtt) {
+        //check the password before registering the user.
+        //throw passwordTypeError for incorrect password and do not register the user.
         if(checkPassword(user))  {
             userService.registerUser(user);
             return "redirect:/users/login";

@@ -1,6 +1,8 @@
 package ImageHoster.repository;
 
 import ImageHoster.model.Image;
+import ImageHoster.model.Comment;
+
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.*;
@@ -125,5 +127,24 @@ public class ImageRepository {
             transaction.rollback();
         }
     }
+
+    /*submitComment() Method-
+		The method receives Comment record from the ImageService class
+		starts a transaction
+		the transaction is committed if it is successful
+		the transaction is rolled back in case of unsuccessful transaction.
+	*//*
+    public void submitComment(Comment newComment) {
+        EntityManager em = emf.createEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+
+        try {
+            transaction.begin();
+            em.persist(newComment);
+            transaction.commit();
+        } catch (Exception e) {
+            transaction.rollback();
+        }
+    }*/
 
 }
